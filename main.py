@@ -195,6 +195,8 @@ class Myapp:
         self.txt_name.pack(side="right", padx=5, pady=5, anchor="e")
         self.txt_name.bind("<FocusIn>", lambda event, entry =self.txt_name: entry.config(bg="#FFFB73"))
         self.txt_name.bind("<FocusOut>", lambda event, entry =self.txt_name: entry.config(bg="white"))
+        self.txt_name.bind("<Return>", lambda event, entry =self.txt_name: entry.tk_focusNext().focus())
+
 
         # ------------------------------------------------
 
@@ -209,6 +211,8 @@ class Myapp:
         self.cmb_gender.pack(side="right", padx=5, pady=5, anchor="e")
         self.cmb_gender["values"] = ["Male", "Female", "Other"]
         self.cmb_gender["state"] = "readonly"
+        self.cmb_gender.bind("<Return>", lambda event, entry=self.cmb_gender: entry.tk_focusNext().focus())
+
 
         # ------------------------------------------------
         self.lbl_contact_number = Label(
@@ -227,6 +231,10 @@ class Myapp:
             validate="key",
         )
         self.txt_contact_number.pack(side="right", padx=5, pady=5, anchor="e")
+        self.txt_contact_number.bind("<FocusIn>", lambda event, entry =self.txt_contact_number: entry.config(bg="#FFFB73"))
+        self.txt_contact_number.bind("<FocusOut>", lambda event, entry =self.txt_contact_number: entry.config(bg="white"))
+        self.txt_contact_number.bind("<Return>", lambda event, entry =self.txt_contact_number: entry.tk_focusNext().focus())
+
 
         # ------------------------------------------------
         self.lbl_email = Label(
@@ -238,6 +246,9 @@ class Myapp:
             self.frm_5, width=25, justify="center", font=("Courier New", 12, "bold")
         )
         self.txt_email.pack(side="right", padx=5, pady=5, anchor="e")
+        self.txt_email.bind("<FocusIn>", lambda event, entry =self.txt_email: entry.config(bg="#FFFB73"))
+        self.txt_email.bind("<FocusOut>", lambda event, entry =self.txt_email: entry.config(bg="white"))
+        self.txt_email.bind("<Return>", lambda event, entry =self.txt_email: entry.tk_focusNext().focus())
 
         # ------------------------------------------------
         self.lbl_date_of_birth = Label(
@@ -256,6 +267,10 @@ class Myapp:
             validate="key",
         )
         self.txt_day.pack(side="left", padx=5, pady=5, fill="none")
+        self.txt_day.bind("<FocusIn>", lambda event, entry =self.txt_day: entry.config(bg="#FFFB73"))
+        self.txt_day.bind("<FocusOut>", lambda event, entry =self.txt_day: entry.config(bg="white"))
+        self.txt_day.bind("<Return>", lambda event, entry =self.txt_day: entry.tk_focusNext().focus())
+
 
         self.lbl_first_slash = Label(
             self.frm_10, text="/", font=("Courier New", 12, "bold"), bg="#B0D9B1"
@@ -269,6 +284,11 @@ class Myapp:
             validate="key",
         )
         self.txt_month.pack(side="left", padx=5, pady=5, fill="none")
+        self.txt_month.bind("<FocusIn>", lambda event, entry =self.txt_month: entry.config(bg="#FFFB73"))
+        self.txt_month.bind("<FocusOut>", lambda event, entry =self.txt_month: entry.config(bg="white"))
+        self.txt_month.bind("<Return>", lambda event, entry =self.txt_month: entry.tk_focusNext().focus())
+
+
 
         self.lbl_second_slash = Label(
             self.frm_10, text="/", font=("Courier New", 12, "bold"), bg="#B0D9B1"
@@ -282,11 +302,20 @@ class Myapp:
             validate="key",
         )
         self.txt_year.pack(side="left", padx=5, pady=5, fill="none")
+        self.txt_year.bind("<FocusIn>", lambda event, entry =self.txt_year: entry.config(bg="#FFFB73"))
+        self.txt_year.bind("<FocusOut>", lambda event, entry =self.txt_year: entry.config(bg="white")) 
+        self.txt_year.bind("<Return>", lambda event, entry =self.txt_year: entry.tk_focusNext().focus())
+
+
 
         self.text_search = Entry(
             self.frm_12, width=20, justify="center", font=("Courier New", 12, "bold")
         )
         self.text_search.pack(side="right", padx=5, pady=5, anchor="e")
+        self.text_search.bind("<FocusIn>", lambda event, entry =self.text_search: entry.config(bg="#FFFB73"))
+        self.text_search.bind("<FocusOut>", lambda event, entry =self.text_search: entry.config(bg="white"))
+        self.text_search.bind("<Return>", lambda event, entry =self.text_search: entry.tk_focusNext().focus())
+
 
         self.img = Image.open("./resource/unicorn.png")
         self.img = self.img.resize((130, 140))
