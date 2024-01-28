@@ -3,12 +3,12 @@ import tkinter as tk
 import os
 from tkinter import messagebox as tsmg
 from tkinter import Tk, Frame, Label, Entry, Button, StringVar, OptionMenu
+from wsgiref import validate
 from PIL import Image, ImageTk
 import re
 from datetime import datetime
 from tkinter import filedialog
 import sqlite3
-
 
 class Tooltip:
     def __init__(self, widget, text):
@@ -37,11 +37,36 @@ class Tooltip:
             self.tooltip.destroy()
             self.tooltip = None
 
+class PlaceholderMixin:
+    def remove_placeholder(self, event):
+        """ Remove placeholder text, if present """
+        placeholder_text = getattr(event.widget, "placeholder_text", "")
+        if placeholder_text and event.widget.get() == placeholder_text:
+            event.widget.delete(0, "end")
+            event.widget.config(fg="#FFFB73")
+        elif placeholder_text  and event.widget.get() != placeholder_text:
+            event.widget.config(fg="#FFFB73")
 
-        
+    def add_placeholder(self, event):
+        """" add placeholder text, if needed """
+        placeholder_text = getattr(event.widget, "placeholder", "")
+        if placeholder_text and event.widget.get() == "":
+            event.widget.insert(0, placeholder_text)
+            event.widget.config(fg="#white")
+        elif placeholder_text and event.widget.get() != "":
+            event.widget.config(fg="#white")   
 
 
-class Myapp:
+    def init_placeholder(self, widget, placeholder_text):
+        """ initialize placeholder text """
+        widget.placeholder_text = placeholder_text
+        if widget.get() == "":
+            widget.insert("end", placeholder_text)
+        #Setup bindings to remove/add placeholder text
+            widget.bind("<FocusIn>", self.remove_placeholder)
+            widget.bind("<FocusOut>", self.add_placeholder)
+
+class Myapp(PlaceholderMixin):
     def __init__(self, window):
         super().__init__()
         self.window = window
@@ -157,11 +182,38 @@ class Myapp:
 
         self.frm_control()
         
+        # Validate Input -------------------------------
+        self.txt_contact_number.configure(validate="key", validatecommand=(self.txt_contact_number.register(self.validate_input), '%P', 1000000000000))
+        self.txt_day.configure(validate="key", validatecommand=(self.txt_day.register(self.validate_input), '%P', 100))
+        self.txt_month.configure(validate="key", validatecommand=(self.txt_month.register(self.validate_input), '%P', 100))
+        self.txt_year.configure(validate="key", validatecommand=(self.txt_year.register(self.validate_input), '%P', 10000))
+        
+
+
+        # Bind Tool Tip to Buttons ----------------------
         Tooltip(self.btn_save, "Ctrl+S")
         Tooltip(self.btn_update, "Ctrl+U")
         Tooltip(self.btn_new, "Ctrl+N")
         Tooltip(self.btn_close, "Ctrl+Alt+C")
         Tooltip(self.btn_browse, "Ctrl+B")
+        Tooltip(self.text_search, "Ctrl+F")
+        # -----------------------------------------------
+
+
+        # setup placeholder text ------------------------
+        self.init_placeholder(self.txt_email,("example12@gmail.com"))
+        self.init_placeholder(self.text_search,("Search Everything"))
+
+    def validate_input(self, text, val):
+        for char in text:
+            if not char.isdigit():
+                return False
+            else:
+                if (int(text) >= int(val)):
+                    return False
+        return True
+    
+
 
 
     def frm_control(self):
@@ -193,10 +245,11 @@ class Myapp:
             self.frm_2, width=25, justify="center", font=("Courier New", 12, "bold")
         )
         self.txt_name.pack(side="right", padx=5, pady=5, anchor="e")
+        # Bind Focus In and Focus Out -------------------
         self.txt_name.bind("<FocusIn>", lambda event, entry =self.txt_name: entry.config(bg="#FFFB73"))
         self.txt_name.bind("<FocusOut>", lambda event, entry =self.txt_name: entry.config(bg="white"))
+        # Bind Enter Key  to move to next widget --------
         self.txt_name.bind("<Return>", lambda event, entry =self.txt_name: entry.tk_focusNext().focus())
-
 
         # ------------------------------------------------
 
@@ -211,6 +264,7 @@ class Myapp:
         self.cmb_gender.pack(side="right", padx=5, pady=5, anchor="e")
         self.cmb_gender["values"] = ["Male", "Female", "Other"]
         self.cmb_gender["state"] = "readonly"
+        # Bind Enter Key  to move to next widget --------
         self.cmb_gender.bind("<Return>", lambda event, entry=self.cmb_gender: entry.tk_focusNext().focus())
 
 
@@ -231,8 +285,10 @@ class Myapp:
             validate="key",
         )
         self.txt_contact_number.pack(side="right", padx=5, pady=5, anchor="e")
+        # Bind Focus In and Focus Out -------------------
         self.txt_contact_number.bind("<FocusIn>", lambda event, entry =self.txt_contact_number: entry.config(bg="#FFFB73"))
         self.txt_contact_number.bind("<FocusOut>", lambda event, entry =self.txt_contact_number: entry.config(bg="white"))
+        # Bind Enter Key  to move to next widget --------
         self.txt_contact_number.bind("<Return>", lambda event, entry =self.txt_contact_number: entry.tk_focusNext().focus())
 
 
@@ -246,8 +302,10 @@ class Myapp:
             self.frm_5, width=25, justify="center", font=("Courier New", 12, "bold")
         )
         self.txt_email.pack(side="right", padx=5, pady=5, anchor="e")
+        # Bind Focus In and Focus Out -------------------
         self.txt_email.bind("<FocusIn>", lambda event, entry =self.txt_email: entry.config(bg="#FFFB73"))
         self.txt_email.bind("<FocusOut>", lambda event, entry =self.txt_email: entry.config(bg="white"))
+        # Bind Enter Key  to move to next widget --------
         self.txt_email.bind("<Return>", lambda event, entry =self.txt_email: entry.tk_focusNext().focus())
 
         # ------------------------------------------------
@@ -267,15 +325,18 @@ class Myapp:
             validate="key",
         )
         self.txt_day.pack(side="left", padx=5, pady=5, fill="none")
+        # Bind Focus In and Focus Out -------------------
         self.txt_day.bind("<FocusIn>", lambda event, entry =self.txt_day: entry.config(bg="#FFFB73"))
         self.txt_day.bind("<FocusOut>", lambda event, entry =self.txt_day: entry.config(bg="white"))
+        # Bind Enter Key  to move to next widget --------
         self.txt_day.bind("<Return>", lambda event, entry =self.txt_day: entry.tk_focusNext().focus())
 
-
+        # Use of Slash to visually separate the date
         self.lbl_first_slash = Label(
             self.frm_10, text="/", font=("Courier New", 12, "bold"), bg="#B0D9B1"
         )
         self.lbl_first_slash.pack(side="left", padx=5, pady=5, anchor="w", fill="none")
+        
         self.txt_month = Entry(
             self.frm_10,
             width=3,
@@ -284,12 +345,14 @@ class Myapp:
             validate="key",
         )
         self.txt_month.pack(side="left", padx=5, pady=5, fill="none")
+        # Bind Focus In and Focus Out -------------------
         self.txt_month.bind("<FocusIn>", lambda event, entry =self.txt_month: entry.config(bg="#FFFB73"))
         self.txt_month.bind("<FocusOut>", lambda event, entry =self.txt_month: entry.config(bg="white"))
+        # Bind Enter Key  to move to next widget --------
         self.txt_month.bind("<Return>", lambda event, entry =self.txt_month: entry.tk_focusNext().focus())
 
 
-
+        # Use of Slash to visually separate the date
         self.lbl_second_slash = Label(
             self.frm_10, text="/", font=("Courier New", 12, "bold"), bg="#B0D9B1"
         )
@@ -302,8 +365,10 @@ class Myapp:
             validate="key",
         )
         self.txt_year.pack(side="left", padx=5, pady=5, fill="none")
+        # Bind Focus In and Focus Out -------------------
         self.txt_year.bind("<FocusIn>", lambda event, entry =self.txt_year: entry.config(bg="#FFFB73"))
         self.txt_year.bind("<FocusOut>", lambda event, entry =self.txt_year: entry.config(bg="white")) 
+        # Bind Enter Key  to move to next widget --------
         self.txt_year.bind("<Return>", lambda event, entry =self.txt_year: entry.tk_focusNext().focus())
 
 
@@ -312,18 +377,21 @@ class Myapp:
             self.frm_12, width=20, justify="center", font=("Courier New", 12, "bold")
         )
         self.text_search.pack(side="right", padx=5, pady=5, anchor="e")
+        # Bind Focus In and Focus Out -------------------
         self.text_search.bind("<FocusIn>", lambda event, entry =self.text_search: entry.config(bg="#FFFB73"))
         self.text_search.bind("<FocusOut>", lambda event, entry =self.text_search: entry.config(bg="white"))
+        # Bind Enter Key  to move to next widget --------
         self.text_search.bind("<Return>", lambda event, entry =self.text_search: entry.tk_focusNext().focus())
 
-
+        # Open Default Image ----------------------------
         self.img = Image.open("./resource/unicorn.png")
         self.img = self.img.resize((130, 140))
         self.pic_box = ImageTk.PhotoImage(self.img)
 
         self.lbl_pic_box = Label(self.frm_7, image=self.pic_box, width=130, height=140)
         self.lbl_pic_box.pack(side="top", padx=5, pady=5, anchor="e")
-
+        # -----------------------------------------------
+        # Button Browse ---------------------------------
         self.btn_browse = Button(
             self.frm_7,
             text="Browse",
@@ -335,6 +403,7 @@ class Myapp:
             activebackground="#F1B763",
         )
         self.btn_browse.pack(side="top", padx=5, pady=5, anchor="center")
+        # -----------------------------------------------
 
         # ---- Button Control ----------------------------
         self.btn_new = Button(
@@ -405,6 +474,7 @@ class Myapp:
             show="headings",
             selectmode="extended",
         )
+        # Define column heading and set width
         self.tree.heading("Student ID", text="Student ID")
         self.tree.heading("Student Name", text="Student Name")
         self.tree.heading("Gender", text="Gender")
@@ -424,6 +494,7 @@ class Myapp:
         self.tree.column("Email", width=200, anchor="center", stretch=True)
         self.tree.column("Date of Birth", width=150, anchor="center", stretch=True)
 
+        # Add Vertical and Horizontal Scrollbar
         treeYScroll = ttk.Scrollbar(self.frame_grid, orient="vertical")
         treeYScroll.configure(command=self.tree.yview)
         self.tree.configure(yscrollcommand=treeYScroll.set)
