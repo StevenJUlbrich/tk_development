@@ -9,11 +9,13 @@ To get started with Tkinter, follow these steps:
 1. Install Python: Tkinter is included in the standard Python distribution, so make sure you have Python installed on your machine.
 
 2. Import the Tkinter module: In your Python script, import the Tkinter module using the following line of code:
+
     ```python
     import tkinter as tk
     ```
 
 3. Create a window: Use the `Tk()` function to create a window object, which will serve as the main window of your application.
+
     ```python
     window = tk.Tk()
     ```
