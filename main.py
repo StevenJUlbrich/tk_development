@@ -698,11 +698,7 @@ class Myapp(PlaceholderMixin):
             tmsg.showerror("Error", f"Load Grid Error due to {str(e)}")
 
 
-
-
-
-
-                
+        
 
 
 
