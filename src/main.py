@@ -2,7 +2,7 @@ import email
 from tkinter import N, ttk, Menu
 import tkinter as tk
 import os
-from tkinter import messagebox as tsmg
+from tkinter import messagebox as tmsg
 from tkinter import Tk, Frame, Label, Entry, Button, StringVar, OptionMenu
 from wsgiref import validate
 from PIL import Image, ImageTk
@@ -10,7 +10,9 @@ import re
 from datetime import datetime
 from tkinter import filedialog
 import sqlite3
-from tkinter import messagebox as tmsg
+from ttkwidgets.autocomplete import AutocompleteEntry
+
+
 
 
 class Tooltip:
@@ -98,7 +100,7 @@ class Myapp(PlaceholderMixin):
         self.window = window
         window.title("Student Info")
         f_w = 1280
-        f_h = 720
+        f_h = 830
         window.iconbitmap(window, r"./resource/microsoft.ico")
         window.config(bg="#B0D9B1")
         screen_w = window.winfo_screenwidth()
@@ -122,7 +124,8 @@ class Myapp(PlaceholderMixin):
             background="#B0D9B1",
             foreground="#186F65",
         )
-
+        self.style.map("TEntry", fieldbackground=[("focus", "#FFFB73")])
+        self.style.configure("TEntry", borderwwidth =[("focus", 0)])
         # -----------------------------------------------
         self.frame_head = Frame(
             self.window,
@@ -176,6 +179,7 @@ class Myapp(PlaceholderMixin):
         self.frm_11.pack(side="right", anchor="s", fill="x")
 
         # +++++++++++++++++++++++++++++++++++++++++++++++
+
         self.frm_2 = Frame(self.frm_ctrl, bg="#B0D9B1")
         self.frm_2.grid(column=1, row=2, sticky="ew", padx=0, pady=0)
         # -----------------------------------------------
@@ -207,6 +211,10 @@ class Myapp(PlaceholderMixin):
         self.frm_1.grid(column=1, row=1, sticky="ew", padx=0, pady=0)
         self.image_folder_path = "./resource/image/"
         self.data = None
+        self.name = None #Added for Autocomplete
+        self.load_autocomplete() # Added for Autocomplete
+
+
 
 
         self.frm_control()
@@ -283,14 +291,14 @@ class Myapp(PlaceholderMixin):
         self.txt_id.pack(side="right", padx=5, pady=5, anchor="e")
         self.txt_id["state"] = "readonly"
 
+
+        # Name -----------------------------------------
         self.lbl_name = Label(
             self.frm_2, text="Name :", font=("Courier New", 12, "bold"), bg="#B0D9B1"
         )
         self.lbl_name.pack(side="left", padx=5, pady=5, anchor="w")
 
-        self.txt_name = Entry(
-            self.frm_2, width=25, justify="center", font=("Courier New", 12, "bold")
-        )
+        self.txt_name = AutocompleteEntry(self.frm_2, completevalues=self.name, width=25, justify="center", font=("Courier New", 12, "bold"))
         self.txt_name.pack(side="right", padx=5, pady=5, anchor="e")
         # Bind Focus In and Focus Out -------------------
         self.txt_name.bind(
@@ -611,7 +619,7 @@ class Myapp(PlaceholderMixin):
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' # Email Validation
         
         if self.txt_name.get() == '':
-            tsmg.showerror("Error", "Please Enter Name")
+            tmsg.showerror("Error", "Please Enter Name")
             self.txt_name.focus()
             return
         if self.cmb_gender.get() == '':
@@ -679,7 +687,7 @@ class Myapp(PlaceholderMixin):
                 # Load Data Gridview
                 self.load_grid()
 
-                self.btn_new.invoke()   
+                self.btn_new.invoke()  #Last Update Video 21:24 
         except Exception as e:
             tmsg.showerror("Error", f"Insert Error due to {str(e)}")
 
@@ -697,8 +705,18 @@ class Myapp(PlaceholderMixin):
         except Exception as e:
             tmsg.showerror("Error", f"Load Grid Error due to {str(e)}")
 
-
-        
+    def load_autocomplete(self):
+        try:
+            conn = sqlite3.connect('./resource/data/stu_info.db')
+            cursor = conn.cursor()
+            sql_query = "SELECT DISTINCT name FROM std_details"
+            cursor.execute(sql_query)
+            # fetch all data from database
+            data = cursor.fetchall()
+            conn.close()
+            self.name = [item[0] for item in data]
+        except Exception as e:
+            tmsg.showerror("Error", f"from Autocomplete text: {str(e)}")
 
 
 
