@@ -1,8 +1,9 @@
 from calendar import c
 import email
+from email.mime import image
 from math import e
 from operator import ge
-from tkinter import N, ttk, Menu
+from tkinter import N, image_names, ttk, Menu
 import tkinter as tk
 import os
 from tkinter import messagebox as tmsg
@@ -98,7 +99,55 @@ class Date_Validation:
         else:
             self.widget.tk_focusNext().focus()
 
+class CreateImageToolTip:
 
+    def __init__(self, widget, treeview, text = 'tooltip'):
+        self.widget = widget
+        self.treeview = treeview
+        self.text = text
+        self.tooltip = None
+        self.id = None
+        self.x = self.y = 0
+
+    def show_tooltip(self, item, event=None):
+        if item and item in self.treeview.selection():
+            item_values = self.treeview.item(item, "values")
+            if item_values and len(item_values) >= 2:
+                image_path = f"./resource/image/{item_values[0]}.jpg"
+                if os.path.exists(image_path):
+                    image = Image.open(image_path)
+                    image.thumbnail((130, 140))
+                    photo = ImageTk.PhotoImage(image)
+
+                    self.tooltip = tk.Toplevel(self.widget)
+                    self.tooltip.wm_overrideredirect(True)
+                    self.tooltip.wm_geometry(f"+{self.x + 15}+{self.y + 10}")
+                    
+                    label = Label(self.tooltip, image=photo, text=self.text, justify='left', background="#FFFFDD", relief="solid", borderwidth=1, font=("TkDefaultFont", 10, "bold"))
+                    #label.pack(ipadx=1)
+
+                    #label = Label(self.tooltip, image=photo, relief="solid", borderwidth=1)
+                    label.image = photo
+                    label.pack(ipadx=1)
+                    
+                    self.id = photo
+                    self.x = event.x_root
+                    self.y = event.y_root
+                else:
+                    self.hide_tooltip()
+
+    def hide_tooltip(self):
+        if self.tooltip:
+            self.tooltip.destroy()
+            self.tooltip = None
+            self.id = None
+            self.x = self.y = 0
+
+
+
+
+
+        
 class Myapp(PlaceholderMixin):
     def __init__(self, window):
         super().__init__()
@@ -273,6 +322,10 @@ class Myapp(PlaceholderMixin):
 
         # Load Data Gridview
         self.load_grid()
+
+        # tooltip for image
+        self.tooltip = CreateImageToolTip(self.window, self.tree)
+
 
     def validate_input(self, text, val):
         for char in text:
@@ -624,6 +677,10 @@ class Myapp(PlaceholderMixin):
 
         self.tree.pack(side="bottom", fill="both", anchor="s")
         self.tree.bind("<Button-3>", lambda event: self.show_content_menu(event=event))  # Bind Right Click to Treeview
+
+        # Bing tooltip image to treeview
+        self.tree.bind("<Button-1>", lambda event: self.on_mouse_over(event))
+        self.tree.bind("<ButtonRelease-1>", lambda event: self.on_mouse_leave(event))
 
     # SQLlite Database ---------------------------------
         
@@ -993,6 +1050,19 @@ class Myapp(PlaceholderMixin):
 
         except Exception as e:
             tmsg.showerror("Error", f"on_search Error due to {str(e)}")
+
+    def on_mouse_over(self, event):
+        try:
+            item = self.tree.identify_row(event.y)
+            self.tooltip.show_tooltip(item, event)
+        except Exception as e:
+            tmsg.showerror("Error", f"on_mouse_over Error due to {str(e)}")
+
+    def on_mouse_leave(self, event):
+        try:
+            self.tooltip.hide_tooltip()
+        except Exception as e:
+            tmsg.showerror("Error", f"on_mouse_leave Error due to {str(e)}")
 
 
 if __name__ == "__main__":
