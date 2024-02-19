@@ -1,4 +1,7 @@
+from calendar import c
 import email
+from math import e
+from operator import ge
 from tkinter import N, ttk, Menu
 import tkinter as tk
 import os
@@ -7,12 +10,14 @@ from tkinter import Tk, Frame, Label, Entry, Button, StringVar, OptionMenu
 from wsgiref import validate
 from PIL import Image, ImageTk
 import re
-from datetime import datetime
+from datetime import date, datetime
 from tkinter import filedialog
 import sqlite3
+import comm
+from numpy import delete, save
 from ttkwidgets.autocomplete import AutocompleteEntry
 
-
+EMAIL_REGEX = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' # Email Validation
 
 
 class Tooltip:
@@ -211,7 +216,7 @@ class Myapp(PlaceholderMixin):
         self.frm_1.grid(column=1, row=1, sticky="ew", padx=0, pady=0)
         self.image_folder_path = "./resource/image/"
         self.data = None
-        self.name = None #Added for Autocomplete
+        self.name = [] #Added for Autocomplete change from None to empty list guarantees that self.name can be safely passed to AutocompleteEntry even if the subsequent data loading fails or if self.name is not updated for some reason
         self.load_autocomplete() # Added for Autocomplete
 
 
@@ -241,6 +246,13 @@ class Myapp(PlaceholderMixin):
             validatecommand=(self.txt_year.register(self.validate_input), "%P", 10000),
         )
 
+        # Menu Strip -----------------------------------
+        self.content_menu = Menu(self.window, tearoff=0)
+        self.content_menu.add_command(label ='Edit', command = self.edit_item)
+        self.content_menu.add_command(label ='Delete', command = self.delete_item)
+
+
+
         # Date Validation ------------------------------
         Date_Validation(self.txt_day, datetime.now().strftime("%d/$m/%Y")[0:2])
         Date_Validation(self.txt_month, datetime.now().strftime("%d/$m/%Y")[3:5])
@@ -252,12 +264,12 @@ class Myapp(PlaceholderMixin):
         Tooltip(self.btn_new, "Ctrl+N")
         Tooltip(self.btn_close, "Ctrl+Alt+C")
         Tooltip(self.btn_browse, "Ctrl+B")
-        Tooltip(self.text_search, "Ctrl+F")
+        Tooltip(self.txt_search, "Ctrl+F")
         # -----------------------------------------------
 
         # setup placeholder text ------------------------
         self.init_placeholder(self.txt_email, ("example12@gmail.com"))
-        self.init_placeholder(self.text_search, ("Search Everything"))
+        self.init_placeholder(self.txt_search, ("Search Everything"))
 
         # Load Data Gridview
         self.load_grid()
@@ -466,23 +478,21 @@ class Myapp(PlaceholderMixin):
             "<Return>", lambda event, entry=self.txt_year: entry.tk_focusNext().focus()
         )
 
-        self.text_search = Entry(
+        # Search ---------------------------------------
+        self.txt_search = Entry(
             self.frm_12, width=20, justify="center", font=("Courier New", 12, "bold")
         )
-        self.text_search.pack(side="right", padx=5, pady=5, anchor="e")
+        self.txt_search.pack(side="right", padx=5, pady=5, anchor="e")
         # Bind Focus In and Focus Out -------------------
-        self.text_search.bind(
-            "<FocusIn>",
-            lambda event, entry=self.text_search: entry.config(bg="#FFFB73"),
+        self.txt_search.bind("<FocusIn>", lambda event, entry=self.txt_day: entry.config(bg="#FFFB73"))
+        self.txt_search.bind(
+            "<FocusOut>", lambda event, entry=self.txt_search: entry.config(bg="white")
         )
-        self.text_search.bind(
-            "<FocusOut>", lambda event, entry=self.text_search: entry.config(bg="white")
-        )
-        # Bind Enter Key  to move to next widget --------
-        self.text_search.bind(
-            "<Return>",
-            lambda event, entry=self.text_search: entry.tk_focusNext().focus(),
-        )
+
+
+        self.txt_search.bind("<KeyRelease>", lambda event: self.on_search(event))
+
+
 
         # Open Default Image ----------------------------
         self.img = Image.open("./resource/unicorn.png")
@@ -549,6 +559,7 @@ class Myapp(PlaceholderMixin):
             height=1,
             justify="center",
             activebackground="#F1B763",
+            command=lambda: self.update_data(),
         )
         self.btn_update.grid(column=1, row=3, sticky="ew", padx=7, pady=7)
 
@@ -612,11 +623,12 @@ class Myapp(PlaceholderMixin):
         treeXScroll.pack(side="bottom", fill="x")
 
         self.tree.pack(side="bottom", fill="both", anchor="s")
+        self.tree.bind("<Button-3>", lambda event: self.show_content_menu(event=event))  # Bind Right Click to Treeview
 
     # SQLlite Database ---------------------------------
         
     def insert_data(self):
-        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b' # Email Validation
+        
         
         if self.txt_name.get() == '':
             tmsg.showerror("Error", "Please Enter Name")
@@ -633,7 +645,7 @@ class Myapp(PlaceholderMixin):
         if self.txt_email.get() == 'example12@gmail.com':
             self.txt_email.delete(0, "end")
         else:
-            if not re.match(regex, self.txt_email.get()):
+            if not re.match(EMAIL_REGEX, self.txt_email.get()):
                 tmsg.showerror('Error','Please Enter Valid Email')
                 self.txt_email.focus()
                 return
@@ -669,7 +681,7 @@ class Myapp(PlaceholderMixin):
                 img.save(save_path, "JPEG")
                 tmsg.showinfo("Success", "Data Inserted Successfully")
                 # Load Data Gridview
-                #self.load_grid()
+                self.load_grid()
                 self.btn_new.invoke()
             else:
                 name = self.txt_name.get()
@@ -718,11 +730,6 @@ class Myapp(PlaceholderMixin):
         except Exception as e:
             tmsg.showerror("Error", f"from Autocomplete text: {str(e)}")
 
-
-
-
-
-
     def browse_image(self):
         self.file_path = filedialog.askopenfilename(
             title="Select A File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")]
@@ -735,6 +742,7 @@ class Myapp(PlaceholderMixin):
             self.lbl_pic_box.image = img_tk
 
     def new_reset(self):
+
         try:
             # Reset all text fields
             self.txt_id.configure(state="normal")
@@ -753,8 +761,8 @@ class Myapp(PlaceholderMixin):
             self.txt_month.delete(0, "end")
             self.txt_year.delete(0, "end")
             
-            self.text_search.delete(0, "end")            
-            self.init_placeholder(self.text_search, ("Search Everything"))
+            self.txt_search.delete(0, "end")            
+            self.init_placeholder(self.txt_search, ("Search Everything"))
 
             # Reset Image
             img = Image.open("./resource/unicorn.png")
@@ -767,6 +775,224 @@ class Myapp(PlaceholderMixin):
 
         except Exception as e:
             tmsg.showerror("Error", f"new reset Error due to {str(e)}")
+
+    def show_content_menu(self, event):  # It will be binded to treeview
+        
+        # Get the item selected under the cursor
+        try:
+            item = self.tree.item(self.tree.focus())
+            if item:
+                self.content_menu.post(event.x_root, event.y_root)
+        except Exception as e:
+            tmsg.showerror("Error", f"show content menu Error due to {str(e)}")
+
+    def edit_item(self):
+        try:
+           item = self.tree.selection() # Get values of the select item
+           if not item:
+                tmsg.showerror("Error", "Please Select row to Edit")
+                return
+           else:
+                values = self.tree.item(item,"values")
+                self.txt_id.configure(state="normal")
+                self.txt_id.delete(0, "end")
+                self.txt_id.insert(0, values[0])
+                self.txt_id.config(state="readonly")
+                self.txt_name.delete(0, "end")
+                self.txt_name.insert(0, values[1])
+                self.cmb_gender.set("")
+                self.cmb_gender.set(values[2])
+                self.txt_contact_number.delete(0, "end")
+                self.txt_contact_number.insert(0, values[3])
+                self.txt_email.delete(0, "end")
+                if values[4] == "":
+                    self.init_placeholder(self.txt_email, ("example12@gmail.com"))
+                else:
+                    self.txt_email.insert(0, values[4])
+                    date = values[5]
+
+                    self.txt_day.delete(0, "end")
+                    self.txt_day.insert(0, date[0:2])
+                    self.txt_month.delete(0, "end")
+                    self.txt_month.insert(0, date[3:5])
+                    self.txt_year.delete(0, "end")
+                    self.txt_year.insert(0, date[6:])
+                    imag_path = f"./resource/image/{values[0]}.jpg"
+                    if os.path.exists(imag_path):
+                        img = Image.open(imag_path)
+                        img = img.resize((130, 140))
+                        img_tk = ImageTk.PhotoImage(img)
+                        self.lbl_pic_box.image = img_tk
+                        self.lbl_pic_box.configure(image=img_tk)
+                    else:
+                        tmsg.showwarning("Warning", "Image not found")
+                        # img = Image.open("./resource/unicorn.png")
+                        # img = img.resize((130, 140))
+                        # img_tk = ImageTk.PhotoImage(img)
+                        # self.lbl_pic_box.image = img_tk
+                        # self.lbl_pic_box.configure(image=img_tk)
+        except Exception as e:
+            tmsg.showerror("Error", f"from retrieve {str(e)}")
+
+
+                
+
+               
+
+
+
+        except Exception as e:
+            tmsg.showerror("Error", f"Edit Error due to {str(e)}")
+
+    def update_data(self):
+         
+        if self.txt_name.get() == '':
+            tmsg.showerror("Error", "Please Enter Name")
+            self.txt_name.focus()
+            return
+                           
+        if self.cmb_gender.get() == '':
+            tmsg.showerror('Error','Please Select Gender')
+            self.cmb_gender.focus()
+            return
+        
+        if self.txt_contact_number.get() == '':
+            tmsg.showerror('Error','Please Enter Contact Number')
+            self.txt_contact_number.focus()
+            return
+        if self.txt_email.get() == 'example12@gmail.com':
+            self.txt_email.delete(0, "end")
+        else:
+            if not re.match(EMAIL_REGEX, self.txt_email.get()):
+                tmsg.showerror('Error','Please Enter Valid Email')
+                self.txt_email.focus()
+                return
+        if self.txt_day.get() == '' or self.txt_month.get() == '' or self.txt_year.get() == '':
+            tmsg.showerror('Error','Please Enter Date of Birth')
+            self.txt_day.focus()
+            return  
+        else:
+            try:
+                str_date = self.txt_day.get() + "/" + self.txt_month.get() + "/" + self.txt_year.get()
+                datetime.strptime(str_date, '%d/%m/%Y')
+            except ValueError:
+                tmsg.showerror('Error','Please Enter Valid Date')
+                self.txt_day.focus()
+                return
+            
+        
+        try:   
+            if hasattr(self.lbl_pic_box, "image"):
+                self.txt_id.configure(state="normal")
+                id = self.txt_id.get()
+                self.txt_id.configure(state="readonly")
+
+                name = self.txt_name.get()
+                gend = self.cmb_gender.get()
+                cont = self.txt_contact_number.get()
+                email = self.txt_email.get()
+                
+                d = self.txt_day.get()
+                m = self.txt_month.get()
+                y = self.txt_year.get()
+                str_date = d + "/" + m + "/" + y
+
+                conn = sqlite3.connect('resource/data/stu_info.db')
+                cursor = conn.cursor()
+                cursor.execute("UPDATE std_details SET name = ?, gen = ?, contact = ?, email = ?, det = ? WHERE Id = ?", (name, gend, cont, email, str_date, id))
+                
+                conn.commit()
+                conn.close()
+                
+               
+
+                # Image Update
+                img_tk = self.lbl_pic_box.image
+                img = ImageTk.getimage(img_tk)
+                img = img.convert("RGB")
+                # Specify the path to save the image
+                save_path = "./resource/image/" + id + ".jpg"
+                img.save(save_path, "JPEG")
+                tmsg.showinfo("Success", "Data Updated Successfully")
+                self.load_grid()
+                self.btn_new.invoke()
+
+            else:
+                self.txt_id.configure(state="normal")
+                id = self.txt_id.get()
+                self.txt_id.configure(state="readonly")
+
+                name = self.txt_name.get()
+                gen = self.cmb_gender.get()
+                cont = self.txt_contact_number.get()
+                email = self.txt_email.get()
+                d = self.txt_day.get()
+                m = self.txt_month.get()
+                y = self.txt_year.get()
+                str_date = d + "/" + m + "/" + y
+
+                conn = sqlite3.connect('resource/data/stu_info.db')
+                cursor = conn.cursor()
+                
+                cursor.execute("UPDATE std_details SET name = ?, gen = ?, contact = ?, email = ?, det = ? WHERE Id = ?", (name, gen, cont, email, str_date, id))    
+                conn.commit()
+                conn.close()
+                tmsg.showinfo("Success", "Data Updated Successfully")
+                self.load_grid()
+                self.btn_new.invoke()
+        except Exception as e:
+            tmsg.showerror("Error", f"Update Error due to {str(e)}")
+                
+
+            
+
+        except Exception as e:
+            tmsg.showerror("Error", f"Insert Error due to {str(e)}")
+
+    def delete_item(self):
+        try:
+            item = self.tree.selection() # Get values of the select item
+            if not item:
+                tmsg.showwarning("Warning", "Please Select row to Delete")
+                return
+            # Confrmation to delete
+            confirmation = tmsg.askyesno("Confirmation", "Do you want to delete this record?")
+            if confirmation:
+
+                values = self.tree.item(item,"values")
+                conn = sqlite3.connect('resource/data/stu_info.db')
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM std_details WHERE Id = ?", (values[0],))
+                conn.commit()
+                conn.close()
+                
+                imgae_file = f"./resource/image/{values[0]}.jpg"
+                if os.path.exists(imgae_file):
+                    os.remove(imgae_file)
+                # Refresh Data Gridview
+                self.load_grid()
+
+                tmsg.showinfo("Success", "Data Deleted Successfully")
+                
+
+        except Exception as e:
+            tmsg.showerror("Error", f"Delete Error due to {str(e)}")
+
+    def on_search(self, event):
+        try:
+            search_query = self.txt_search.get()
+            self.tree.delete(*self.tree.get_children())
+
+            if not search_query:
+                self.load_grid()
+            else:
+                # filter and insert matching rows into the Treeview
+                filter_data = [(Id, name, gen, contact, email, det) for Id, name, gen, contact, email, det in self.data if search_query.lower() in name.lower()]
+                for data in filter_data:
+                    self.tree.insert("", "end", values=data)
+
+        except Exception as e:
+            tmsg.showerror("Error", f"on_search Error due to {str(e)}")
 
 
 if __name__ == "__main__":
