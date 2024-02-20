@@ -119,6 +119,11 @@ class CreateImageToolTip:
                     image.thumbnail((130, 140))
                     photo = ImageTk.PhotoImage(image)
 
+                    # Ensure the self.x and self.y are set to the current mouse position
+                    if event:
+                        self.x = event.x_root
+                        self.y = event.y_root
+
                     self.tooltip = tk.Toplevel(self.widget)
                     self.tooltip.wm_overrideredirect(True)
                     self.tooltip.wm_geometry(f"+{self.x + 15}+{self.y + 10}")
@@ -131,8 +136,7 @@ class CreateImageToolTip:
                     label.pack(ipadx=1)
                     
                     self.id = photo
-                    self.x = event.x_root
-                    self.y = event.y_root
+
                 else:
                     self.hide_tooltip()
 
