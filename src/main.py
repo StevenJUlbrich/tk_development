@@ -123,7 +123,7 @@ class CreateImageToolTip:
                     self.tooltip.wm_overrideredirect(True)
                     self.tooltip.wm_geometry(f"+{self.x + 15}+{self.y + 10}")
                     
-                    label = Label(self.tooltip, image=photo, text=self.text, justify='left', background="#FFFFDD", relief="solid", borderwidth=1, font=("TkDefaultFont", 10, "bold"))
+                    label = Label(self.tooltip, image=photo, text=self.text, justify='left', background="#FFFFDD", relief="solid", borderwidth=1)
                     #label.pack(ipadx=1)
 
                     #label = Label(self.tooltip, image=photo, relief="solid", borderwidth=1)
@@ -309,16 +309,29 @@ class Myapp(PlaceholderMixin):
 
         # Bind Tool Tip to Buttons ----------------------
         Tooltip(self.btn_save, "Ctrl+S")
+        window.bind("<Control-s>", lambda event: self.btn_save.invoke())
+        
         Tooltip(self.btn_update, "Ctrl+U")
+        window.bind("<Control-u>", lambda event: self.btn_update.invoke())
+
         Tooltip(self.btn_new, "Ctrl+N")
+        window.bind("<Control-n>", lambda event: self.btn_new.invoke())
+        
         Tooltip(self.btn_close, "Ctrl+Alt+C")
+        window.bind("<Control-Alt-c>", lambda event: self.btn_close.invoke())   
+
         Tooltip(self.btn_browse, "Ctrl+B")
+        window.bind("<Control-b>", lambda event: self.btn_browse.invoke())
+
         Tooltip(self.txt_search, "Ctrl+F")
+        window.bind("<Control-f>", lambda event: self.txt_search.focus())
         # -----------------------------------------------
 
         # setup placeholder text ------------------------
         self.init_placeholder(self.txt_email, ("example12@gmail.com"))
-        self.init_placeholder(self.txt_search, ("Search Everything"))
+        self.init_placeholder(self.txt_search, ("Search By Name"))
+
+
 
         # Load Data Gridview
         self.load_grid()
@@ -626,6 +639,7 @@ class Myapp(PlaceholderMixin):
             height=1,
             justify="center",
             activebackground="#F1B763",
+            command=lambda: self.close_app(),
         )
         self.btn_close.grid(column=1, row=4, sticky="ew", padx=7, pady=7)
 
@@ -1064,6 +1078,13 @@ class Myapp(PlaceholderMixin):
         except Exception as e:
             tmsg.showerror("Error", f"on_mouse_leave Error due to {str(e)}")
 
+    def close_app(self):
+        try:
+            confirmation = tmsg.askyesno("Confirmation", "Do you want to close this application?")
+            if confirmation:
+                self.window.destroy()
+        except Exception as e:
+            tmsg.showerror("Error", f"close_app Error due to {str(e)}")
 
 if __name__ == "__main__":
     window = Tk()
