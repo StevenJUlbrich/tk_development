@@ -1,0 +1,132 @@
+[
+    {
+        "name": "Amanda King",
+        "age": 23,
+        "address": {
+            "street": "3121 Cooper Track",
+            "city": "Richardport"
+        },
+        "hobbies": [
+            "actually",
+            "cut",
+            "of"
+        ]
+    },
+    {
+        "name": "Lisa Pacheco",
+        "age": 60,
+        "address": {
+            "street": "333 Joshua Extension",
+            "city": "South Bradview"
+        },
+        "hobbies": [
+            "maintain",
+            "necessary",
+            "out"
+        ]
+    },
+    {
+        "name": "Theresa Perry",
+        "age": 79,
+        "address": {
+            "street": "9719 Carol Rest Suite 656",
+            "city": "Luisbury"
+        },
+        "hobbies": [
+            "prevent",
+            "yourself",
+            "generation"
+        ]
+    },
+    {
+        "name": "Kayla Marshall",
+        "age": 58,
+        "address": {
+            "street": "880 Vanessa View",
+            "city": "Reyeston"
+        },
+        "hobbies": [
+            "traditional",
+            "should",
+            "age"
+        ]
+    },
+    {
+        "name": "Dr. Brett Cunningham Jr.",
+        "age": 80,
+        "address": {
+            "street": "024 Arthur Throughway Apt. 299",
+            "city": "Chaseport"
+        },
+        "hobbies": [
+            "form",
+            "person",
+            "dark"
+        ]
+    },
+    {
+        "name": "Linda Carter",
+        "age": 57,
+        "address": {
+            "street": "459 Brittany Fords Suite 079",
+            "city": "Foxton"
+        },
+        "hobbies": [
+            "particularly",
+            "process",
+            "environment"
+        ]
+    },
+    {
+        "name": "Grant Allen",
+        "age": 48,
+        "address": {
+            "street": "68976 Oliver Springs Apt. 173",
+            "city": "Berrybury"
+        },
+        "hobbies": [
+            "early",
+            "behind",
+            "free"
+        ]
+    },
+    {
+        "name": "Sara Juarez",
+        "age": 35,
+        "address": {
+            "street": "294 Anderson Common Apt. 939",
+            "city": "Port Lori"
+        },
+        "hobbies": [
+            "until",
+            "price",
+            "administration"
+        ]
+    },
+    {
+        "name": "Kristen Schroeder",
+        "age": 77,
+        "address": {
+            "street": "0374 Mary Parkway",
+            "city": "Lynchfurt"
+        },
+        "hobbies": [
+            "help",
+            "knowledge",
+            "eye"
+        ]
+    },
+    {
+        "name": "Daniel Owens",
+        "age": 60,
+        "address": {
+            "street": "6334 Brittany Club",
+            "city": "Jamesview"
+        },
+        "hobbies": [
+            "knowledge",
+            "rise",
+            "control"
+        ]
+    }
+]
