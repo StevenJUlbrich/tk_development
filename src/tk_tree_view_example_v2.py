@@ -58,15 +58,21 @@ def display_data_in_treeview(categories: List[CategoryType]):
     root = tk.Tk()
     root.title("Categories and Exclusions Viewer")
 
-    tree = ttk.Treeview(root, columns=("ID", "Type"), show="headings")
+    # Set up the Treeview with an additional column to better describe the data
+    tree = ttk.Treeview(root, columns=("ID", "Description"), show="headings")
     tree.heading("ID", text="ID")
-    tree.heading("Type", text="Type")
+    tree.heading("Description", text="Description")
     tree.pack(expand=True, fill='both')
 
+    # Inserting CategoryType instances as parent items
     for category in categories:
-        cat_id = tree.insert('', 'end', values=(category.category_type_id, category.category_type), open=True)
+        cat_description = f"Category: {category.category_type} (App Seal ID: {category.app_seal_id})"
+        cat_id = tree.insert('', 'end', values=(category.category_type_id, cat_description), open=True)  # Open to show children by default
+
+        # Inserting ExclusionType instances as child items of the CategoryType
         for exclusion in category.exclusions:
-            tree.insert(cat_id, 'end', values=(exclusion.excluded_category_type_id, exclusion.excluded_category_type_name))
+            exc_description = f"Excluded: {exclusion.excluded_category_type_name}"
+            tree.insert(cat_id, 'end', values=(exclusion.excluded_category_type_id, exc_description))
 
     root.mainloop()
 
